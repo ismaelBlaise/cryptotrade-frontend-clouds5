@@ -2,28 +2,53 @@
     <div class="validation-email-container">
         <div>
             <h2>Un email vous a été envoyé</h2>
-            <p>veuillez saisir le code PIN ici…</p>
+            <p>Veuillez saisir le code PIN ici…</p>
         </div>
         <div>
-
             <div class="pin-container">
-                <form>
+                <form @submit.prevent="validerPin">
                     <div class="form-group">
-                        <input type="text" placeholder="PIN">
+                        <input type="text" v-model="formData.codepin" placeholder="PIN">
                     </div>
                     <div class="form-group">
-                        <button type="submit">valider</button>
+                        <button type="submit">Valider</button>
                     </div>
+                    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
                 </form>
             </div>
         </div>
     </div>
 </template>
   
-<script></script>
+<script>
+import axios from 'axios';
+
+export default {
+    data() {
+        return {
+            formData: {
+                email: localStorage.getItem('email') || '',
+                codepin: ''
+            },
+            errorMessage: ''
+        };
+    },
+    methods: {
+        async validerPin() {
+            try {
+                const response = await axios.post('http://localhost:8080/auth/valider-pin', this.formData);
+                if (response.status === 200) {
+                    this.$router.push({ path: '/compte/accueil' });
+                }
+            } catch (error) {
+                this.errorMessage = error.response?.data || "Erreur lors de la validation du code PIN";
+            }
+        }
+    }
+};
+</script>
   
 <style scoped>
-
     .validation-email-container {
         height: 100%;
         width: 100%;
@@ -59,7 +84,7 @@
         gap: 20px;
     }
 
-    input , button, select {
+    input , button {
         width: 100%;
         padding: 12px 16px;
         border-radius: 4px;
@@ -85,5 +110,9 @@
         font-size: 16px;
     }
 
+    .error-message {
+        color: #ff4c4c;
+        font-size: 14px;
+        text-align: center;
+    }
 </style>
-    

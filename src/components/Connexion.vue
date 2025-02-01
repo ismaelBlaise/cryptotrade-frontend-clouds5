@@ -11,7 +11,11 @@
         </div>
   
         <div class="form-group">
-          <input type="password" id="mdp" v-model="formData.mdp" placeholder="********" />
+          <input type="password" id="mdp" v-model="formData.mot_de_passe" placeholder="********" />
+        </div>
+  
+        <div class="form-group" v-if="errorMessage">
+            <p class="error-message">{{ errorMessage }}</p>
         </div>
   
         <div class="form-group">
@@ -23,30 +27,37 @@
 </template>
   
 <script>
+import axios from 'axios';
 
-    import axios from 'axios';
-
-    export default {
-        data() {
-            return {
-                formData: {
-                    email: '',
-                    mdp: '',
-                }
-            };
-        },
-        methods: {
-            async connexion() {
-                try {
-                    // await axios.post('http://localhost:8080/utilisateurs/connexion', this.formData);
+export default {
+    data() {
+        return {
+            formData: {
+                email: '',
+                mot_de_passe: '',
+            },
+            errorMessage: ''
+        };
+    },
+    methods: {
+        async connexion() {
+            try {
+                const response = await axios.post('http://localhost:8080/auth/connexion', this.formData);
+                
+                if (response.status === 200) {
+                    localStorage.setItem('email',this.formData.email);
                     this.$router.push({ name: 'validationPin' });
-                } catch (error) {
-                    console.error('Erreur lors de l\'authentification');
+                }
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    this.errorMessage = "Trop de tentatives de connexion. Veuillez consulter votre boîte email.";
+                } else {
+                    this.errorMessage = error.response.data.message;
                 }
             }
         }
-    };
-
+    }
+};
 </script>
   
 <style scoped>
@@ -98,5 +109,14 @@
         font-size: 16px;
     }
 
+    button ::hover {
+        background-color: white;
+        color: #E7361A;
+    }
+
+    .error-message {
+        color: #E7361A;
+        font-size: 14px;
+        font-weight: bold;
+    }
 </style>
-    
