@@ -1,62 +1,24 @@
 <template>
-  <div class="achat-container">
-    <h2>ACHAT</h2>
-
-    <!-- Champ de recherche -->
+  <div class="vente-container">
+    <h2>VENTE</h2>
     <div class="search-container">
       <input
         type="text"
-        placeholder="Rechercher par nom de cryptomonnaie..."
+        placeholder="Rechercher une crypto..."
         v-model="searchQuery"
-        @input="filterCryptos"
       />
     </div>
-
     <div class="list-container">
-      <div
-        class="element"
-        v-for="crypto in filteredCryptomonnaies"
-        :key="crypto.id"
-      >
-        <div class="element-crypto">
-          <div class="infos">
-            <div class="image-container">
-              <img src="@/assets/images/currency.png" alt="Crypto" />
-            </div>
-            <div>
-              <p class="nomCrypto">{{ crypto.nom }} ({{ crypto.symbole }})</p>
-            </div>
-          </div>
-          <div>
-            <p class="prix">Prix actuel: {{ crypto.prix }} $</p>
-          </div>
-        </div>
+      <div class="element">
         <div class="element-action">
-          <div
-            v-if="message[crypto.id]"
-            :class="{
-              success: isSuccess[crypto.id],
-              error: !isSuccess[crypto.id],
-            }"
-            class="message"
-          >
-            {{ message[crypto.id] }}
-          </div>
-          <form
-            @submit.prevent="acheter(crypto.id, quantites[crypto.id] || '')"
-          >
+          <form @submit.prevent="analyser()">
             <div class="form-group">
-              <input
-                step="0.0001"
-                type="number"
-                placeholder="Quantité"
-                v-model="quantites[crypto.id]"
-              />
+              <select class="" v-for="crypto in getCryptomonnaies">
+                <option value=""></option>
+              </select>
             </div>
             <div class="form-group">
-              <button type="submit" :disabled="loadingStates[crypto.id]">
-                {{ loadingStates[crypto.id] ? "Chargement..." : "Acheter" }}
-              </button>
+              <button type="submit">Analyser</button>
             </div>
           </form>
         </div>
@@ -72,37 +34,39 @@ export default {
   data() {
     return {
       cryptomonnaies: [],
-      filteredCryptomonnaies: [],
-      searchQuery: "", // Valeur du champ de recherche
+      quantites: {},
       formData: {
         idCrypto: "",
         quantite: "",
       },
       loadingStates: {},
-      quantites: {},
       message: {},
       isSuccess: {},
-      updateInterval: null,
     };
   },
+  computed: {},
   methods: {
-    async getCryptomonnaies() {
-      try {
-        const response = await api.get("/cryptomonnaies");
-        if (response && response.data) {
+    getCryptomonnaies() {
+      api
+        .get("/analyse")
+        .then((response) => {
           this.cryptomonnaies = response.data;
-          this.filteredCryptomonnaies = this.cryptomonnaies; // Initialisation avec toutes les cryptos
-        } else {
-          console.error("Aucune donnée disponible dans la réponse");
-        }
-      } catch (error) {
-        console.error(
-          "Erreur lors de la récupération des cryptomonnaies:",
-          error
-        );
-      }
+        })
+        .catch((error) => {
+          console.error("Erreur lors du chargement des cryptomonnaies:", error);
+        });
     },
-    async acheter(id, quantite) {
+    clearMessage(id) {
+      if (this.messageTimers[id]) {
+        clearTimeout(this.messageTimers[id]);
+      }
+
+      this.messageTimers[id] = setTimeout(() => {
+        this.message[id] = null;
+        this.isSuccess[id] = false;
+      }, 5000);
+    },
+    async analyser(id, quantite) {
       if (!quantite || quantite <= 0) {
         alert("Veuillez entrer une quantité valide.");
         return;
@@ -114,7 +78,7 @@ export default {
 
       try {
         const response = await api.post(
-          "/transactioncryptos/achat",
+          "/transactioncryptos/vente",
           this.formData
         );
 
@@ -122,42 +86,33 @@ export default {
           this.message[id] = response.data;
           this.isSuccess[id] = true;
           this.quantites[id] = "";
+          await this.getCryptomonnaies();
+          this.clearMessage(id);
         }
       } catch (error) {
         this.message[id] =
           error.response?.data?.message ||
-          "Erreur lors de l'achat. Veuillez réessayer.";
+          "Erreur lors de la vente. Veuillez réessayer.";
         this.isSuccess[id] = false;
+        this.clearMessage(id);
       } finally {
         this.loadingStates[id] = false;
       }
     },
-    filterCryptos() {
-      const query = this.searchQuery.toLowerCase();
-      this.filteredCryptomonnaies = this.cryptomonnaies.filter((crypto) =>
-        crypto.nom.toLowerCase().includes(query)
-      );
-    },
-    startAutoUpdate() {
-      this.updateInterval = setInterval(() => {
-        this.getCryptomonnaies();
-      }, 10000); // Mise à jour toutes les 10 secondes
-    },
+  },
+  beforeUnmount() {
+    Object.values(this.messageTimers).forEach((timer) => {
+      clearTimeout(timer);
+    });
   },
   mounted() {
     this.getCryptomonnaies();
-    this.startAutoUpdate();
-  },
-  beforeUnmount() {
-    if (this.updateInterval) {
-      clearInterval(this.updateInterval);
-    }
   },
 };
 </script>
 
 <style scoped>
-.achat-container {
+.vente-container {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -184,10 +139,6 @@ h2 {
   outline: none;
   background-color: transparent;
   border: 1px solid white;
-  color: white;
-}
-
-.search-container input::placeholder {
   color: white;
 }
 

@@ -1,11 +1,11 @@
-*{
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
 .page-container {
-  background-image: linear-gradient(#0D144E,#1A5562);
+  background-image: linear-gradient(#0d144e, #1a5562);
   font-family: Arial, Helvetica, sans-serif;
   height: 100vh;
 }
@@ -43,8 +43,8 @@
 }
 
 .links button.selectable {
-  background-color: #E7361A;
-  border: 1px solid #E7361A;
+  background-color: #e7361a;
+  border: 1px solid #e7361a;
   color: white;
 }
 

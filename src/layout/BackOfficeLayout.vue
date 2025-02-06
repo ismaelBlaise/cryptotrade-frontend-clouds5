@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <div class="navbar">
-      <a class="logo">Cryptotrade</a>
+      <a class="logo">Cryptotrade administrateur</a>
       <div class="links">
         <!-- Affichage des autres icônes sauf déconnexion -->
         <router-link
@@ -34,28 +34,20 @@
 
 <script>
 import api from "@/services/axios";
-import AcceuilIcon from "@/assets/icons/accueil.png";
-import DepotIcon from "@/assets/icons/depot.png";
-import RetraitIcon from "@/assets/icons/retrait.png";
-import AchatIcon from "@/assets/icons/achat.png";
-import VenteIcon from "@/assets/icons/vente.png";
-import FondIcon from "@/assets/icons/portefeuille.png";
-import CryptoIcon from "@/assets/icons/portefeuille-numerique.png";
-import CoursIcon from "@/assets/icons/cours.png";
+import DepotTransactionIcon from "@/assets/icons/depot.png";
+import RetraitTransactionIcon from "@/assets/icons/retrait.png";
 import Deconnexion from "@/assets/icons/log-out.png";
+import HistoriqueCryptoIcon from "@/assets/icons/portefeuille-numerique.png"; // Nouvelle icône
+import HistoriqueFondIcon from "@/assets/icons/portefeuille.png"; // Nouvelle icône
 
 export default {
   data() {
     return {
       iconMap: {
-        acceuil: AcceuilIcon,
-        depot: DepotIcon,
-        retrait: RetraitIcon,
-        achat: AchatIcon,
-        vente: VenteIcon,
-        cours: CoursIcon,
-        "portefeuille-fond": FondIcon,
-        "portefeuille-crypto": CryptoIcon,
+        "depot-transaction": DepotTransactionIcon,
+        "retrait-transaction": RetraitTransactionIcon,
+        "historique-transaction-crypto": HistoriqueCryptoIcon, // Nouvelle icône
+        "historique-transaction-fond": HistoriqueFondIcon, // Nouvelle icône
       },
       iconDeconnexion: {
         deconnexion: Deconnexion,
@@ -67,9 +59,9 @@ export default {
       try {
         const response = await api.get("/auth/logout", {
           withCredentials: true,
-        });
+        }); // Assurer la gestion des cookies de session
         if (response.status === 200) {
-          this.$router.push("/connexion"); // Redirection vers la page de connexion
+          this.$router.push("/connexion"); // Redirection vers la page d'accueil
         } else {
           console.warn("La déconnexion n'a pas été traitée correctement.");
         }
